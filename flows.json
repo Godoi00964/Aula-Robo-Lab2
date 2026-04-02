@@ -52,9 +52,77 @@
         "y": 260,
         "wires": [
             [
+                "a1b2c3d4e5f6780a"
+            ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f6780a",
+        "type": "function",
+        "z": "66d8fdf474fb64da",
+        "name": "guardar para API",
+        "func": "global.set('lab2', msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 260,
+        "wires": [
+            [
                 "035c381b775005c2"
             ]
         ]
+    },
+    {
+        "id": "b2c3d4e5f678901b",
+        "type": "http in",
+        "z": "66d8fdf474fb64da",
+        "name": "GET supervision",
+        "url": "/supervision-lab2",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 330,
+        "y": 420,
+        "wires": [
+            [
+                "c3d4e5f67890123c"
+            ]
+        ]
+    },
+    {
+        "id": "c3d4e5f67890123c",
+        "type": "function",
+        "z": "66d8fdf474fb64da",
+        "name": "ler global lab2",
+        "func": "msg.payload = global.get('lab2') || {\n    status_robo: \"—\",\n    total_pecas: 0,\n    total_ciclos: 0,\n    taxa_acerto: \"0%\",\n    ultimo_log: \"Ainda sem dados do fluxo (clique no inject ou conecte a fonte real)\"\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 420,
+        "wires": [
+            [
+                "d4e5f6789012345d"
+            ]
+        ]
+    },
+    {
+        "id": "d4e5f6789012345d",
+        "type": "http response",
+        "z": "66d8fdf474fb64da",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 820,
+        "y": 420,
+        "wires": []
     },
     {
         "id": "035c381b775005c2",
