@@ -35,10 +35,22 @@ function parseProductionPayload(data) {
       atualizado: t,
     };
 
+    const statusText = String(data.status_robo ?? '').toUpperCase();
+    const statusColor = statusText === 'RUNNING'
+      ? '#22c55e'
+      : statusText === 'STOPPED'
+        ? '#ef4444'
+        : statusText === 'IDLE'
+          ? '#f59e0b'
+          : '#3b59ff';
+    const statusValue = statusText === 'RUNNING' ? 100 : statusText === 'IDLE' ? 60 : 40;
+
     const bars = [
       { label: 'Taxa acerto', value: Math.min(100, Math.round(taxa)), color: '#4facfe', time: summary.taxaTexto, suffix: '%' },
-      { label: 'Sucesso (ciclos)', value: Math.min(100, pctOk), color: '#71b294', time: `${ok} / ${ciclos} ciclos`, suffix: '%' },
-      { label: 'Falhas (ciclos)', value: Math.min(100, pctFail), color: '#ff6b6b', time: `${falhas} falhas`, suffix: '%' },
+      { label: 'Peças OK', value: Math.min(100, pctOk), color: '#71b294', time: `${ok} peças`, suffix: '%' },
+      { label: 'Ciclos', value: 100, color: '#8d62ff', time: `${ciclos} ciclos`, suffix: '%' },
+      { label: 'Falhas', value: Math.min(100, pctFail), color: '#ff6b6b', time: `${falhas} falhas`, suffix: '%' },
+      { label: 'Status', value: statusValue, color: statusColor, time: summary.estado, suffix: '%' },
     ];
 
     return { summary, bars };
@@ -57,7 +69,6 @@ const Dashboard = () => {
   const [now, setNow] = useState(new Date());
   const [productionSummary, setProductionSummary] = useState(null);
   const [nrLive, setNrLive] = useState(false);
-  const [rawPayload, setRawPayload] = useState(null);
 
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -78,7 +89,6 @@ const Dashboard = () => {
     source.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        setRawPayload(payload);
         const next = parseProductionPayload(payload);
         if (next) {
           setChartData(next.bars);
@@ -148,11 +158,11 @@ const Dashboard = () => {
                  <div>
                    <h2>Indicadores de Produção</h2>
                    <p className="chart-subtitle">
-                     {productionSummary
+                      {productionSummary
                        ? `Dados de produção · atualizado às ${productionSummary.atualizado}`
                        : nrLive
                          ? 'Indicadores recebidos do Node-RED'
-                         : 'Valores de exemplo até o GET /nr/supervision-lab2 responder'}
+                        : 'Valores de exemplo até o Node-RED enviar o primeiro payload'}
                    </p>
                  </div>
                  <span className={`chart-note ${nrLive ? 'chart-note-live' : ''}`}>
@@ -205,14 +215,6 @@ const Dashboard = () => {
                  ))}
                </div>
 
-               <div className="production-metrics" aria-label="Debug de payload SSE">
-                 <div className="production-metric production-metric-wide">
-                   <span className="production-metric-label">Debug SSE (payload bruto)</span>
-                   <span className="production-metric-log" title={rawPayload ? JSON.stringify(rawPayload) : 'Aguardando dados...'}>
-                     {rawPayload ? JSON.stringify(rawPayload) : 'Aguardando dados do Node-RED...'}
-                   </span>
-                 </div>
-               </div>
              </div>
           </div>
         </section>
