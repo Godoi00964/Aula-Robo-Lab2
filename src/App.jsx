@@ -12,30 +12,40 @@ const NavButton = ({ label, variant, active }) => (
  * Array: barras PMG [{ label, value, color, time }].
  * Objeto Node-RED: summary + barras alinhadas à produção (taxa, % sucesso, % falhas).
  */
-function parseProductionPayload(data) {
-  if (Array.isArray(data) && data.length) {
-    return { summary: null, bars: data };
+function normalizePayload(data) {
+  if (data && typeof data === 'object') {
+    if (data.payload && typeof data.payload === 'object') return data.payload;
+    if (data.body && typeof data.body === 'object') return data.body;
   }
-  if (data && typeof data === 'object' && ('taxa_acerto' in data || 'total_pecas' in data)) {
-    const taxa = parseFloat(String(data.taxa_acerto ?? '0').replace('%', '')) || 0;
-    const ok = Number(data.total_pecas) || 0;
-    const ciclos = Number(data.total_ciclos) || 0;
+  return data;
+}
+
+function parseProductionPayload(data) {
+  const normalized = normalizePayload(data);
+
+  if (Array.isArray(normalized) && normalized.length) {
+    return { summary: null, bars: normalized };
+  }
+  if (normalized && typeof normalized === 'object' && ('taxa_acerto' in normalized || 'total_pecas' in normalized)) {
+    const taxa = parseFloat(String(normalized.taxa_acerto ?? '0').replace('%', '')) || 0;
+    const ok = Number(normalized.total_pecas) || 0;
+    const ciclos = Number(normalized.total_ciclos) || 0;
     const falhas = Math.max(0, ciclos - ok);
     const pctOk = ciclos > 0 ? Math.round((ok / ciclos) * 100) : 0;
     const pctFail = ciclos > 0 ? Math.round((falhas / ciclos) * 100) : 0;
     const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     const summary = {
-      estado: String(data.status_robo ?? '—'),
-      taxaTexto: String(data.taxa_acerto ?? `${taxa.toFixed(1)}%`),
+      estado: String(normalized.status_robo ?? '—'),
+      taxaTexto: String(normalized.taxa_acerto ?? `${taxa.toFixed(1)}%`),
       pecasOk: ok,
       ciclos,
       falhas,
-      ultimoLog: String(data.ultimo_log ?? '—'),
+      ultimoLog: String(normalized.ultimo_log ?? '—'),
       atualizado: t,
     };
 
-    const statusText = String(data.status_robo ?? '').toUpperCase();
+    const statusText = String(normalized.status_robo ?? '').toUpperCase();
     const statusColor = statusText === 'RUNNING'
       ? '#22c55e'
       : statusText === 'STOPPED'
@@ -58,6 +68,12 @@ function parseProductionPayload(data) {
   return null;
 }
 
+function isRampa1Executing(data) {
+  if (data == null) return false;
+  const raw = typeof data === 'string' ? data : JSON.stringify(data);
+  return /rampa\s*1|rampa1|programa em execu[cç][ãa]o:\s*rampa 1/i.test(raw);
+}
+
 const Dashboard = () => {
   const [chartData, setChartData] = useState([
     { label: 'Status_Robo', value: 68, color: '#4facfe', time: '08:14' },
@@ -69,6 +85,8 @@ const Dashboard = () => {
   const [now, setNow] = useState(new Date());
   const [productionSummary, setProductionSummary] = useState(null);
   const [nrLive, setNrLive] = useState(false);
+  const [lastPayload, setLastPayload] = useState(null);
+  const [rampa1Executing, setRampa1Executing] = useState(false);
 
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -83,24 +101,32 @@ const Dashboard = () => {
     const source = new EventSource('http://localhost:3001/events');
 
     source.onopen = () => {
+      console.log('[SSE] conectado em http://localhost:3001/events');
       setNrLive(true);
     };
 
     source.onmessage = (event) => {
+      console.log('[SSE] evento recebido:', event.data);
+      setLastPayload(event.data);
+      setRampa1Executing(isRampa1Executing(event.data));
       try {
         const payload = JSON.parse(event.data);
+        setRampa1Executing(isRampa1Executing(payload));
         const next = parseProductionPayload(payload);
         if (next) {
           setChartData(next.bars);
           setProductionSummary(next.summary);
           setNrLive(true);
+        } else {
+          console.warn('[SSE] payload não corresponde ao formato esperado:', payload);
         }
       } catch (error) {
-        console.warn('[SSE] Payload inválido:', event.data);
+        console.warn('[SSE] Payload inválido:', event.data, error);
       }
     };
 
-    source.onerror = () => {
+    source.onerror = (event) => {
+      console.warn('[SSE] erro de conexão', event);
       setNrLive(false);
     };
 
@@ -147,7 +173,7 @@ const Dashboard = () => {
 
         <section className="content-grid">
           <div className="action-column">
-            <button className="call-btn">Call PMG 1</button>
+            <button className={`call-btn ${rampa1Executing ? 'blink-red' : ''}`}>Call PMG 1</button>
             <button className="call-btn">Call PMG 2</button>
             <button className="call-btn">Call PMG 3</button>
           </div>
@@ -198,6 +224,13 @@ const Dashboard = () => {
                        {productionSummary.ultimoLog}
                      </span>
                    </div>
+                 </div>
+               )}
+
+               {lastPayload && (
+                 <div className="raw-payload-card">
+                   <h3>Resposta do Node-RED</h3>
+                   <pre>{lastPayload}</pre>
                  </div>
                )}
 

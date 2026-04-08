@@ -266,15 +266,15 @@
   transition: transform 0.25s ease;
 }
 
-.bar:hover {
-  transform: translateY(-6px);
-}
+  @keyframes blink-red {
+    0%, 100% { background-color: #ef4444; box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+    50% { background-color: #dc2626; box-shadow: 0 0 18px rgba(239, 68, 68, 0.75); }
+  }
 
-.bar-value {
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%);
+  .blink-red {
+    animation: blink-red 1s ease-in-out infinite;
+    color: #ffffff;
+  }
   background: rgba(255, 255, 255, 0.95);
   padding: 4px 10px;
   border-radius: 999px;
@@ -293,3 +293,26 @@
   font-size: 0.8rem;
   color: #6b7280;
 }
+  .raw-payload-card {
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 16px;
+    color: #111827;
+  }
+
+  .raw-payload-card h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: #1f2937;
+  }
+
+  .raw-payload-card pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: #111827;
+  }
