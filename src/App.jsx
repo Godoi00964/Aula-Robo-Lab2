@@ -48,15 +48,16 @@ function parseProductionPayload(data) {
 
 const Dashboard = () => {
   const [chartData, setChartData] = useState([
-    { label: 'PMG 1', value: 68, color: '#4facfe', time: '08:14' },
-    { label: 'PMG 2', value: 82, color: '#71b294', time: '09:02' },
-    { label: 'PMG 3', value: 57, color: '#ff9a56', time: '09:38' },
-    { label: 'PMG 4', value: 93, color: '#8d62ff', time: '10:11' },
-    { label: 'PMG 5', value: 74, color: '#3b59ff', time: '10:45' },
+    { label: 'Status_Robo', value: 68, color: '#4facfe', time: '08:14' },
+    { label: 'Taxa_Acerto', value: 82, color: '#71b294', time: '09:02' },
+    { label: 'Total_Pecas', value: 57, color: '#ff9a56', time: '09:38' },
+    { label: 'Total_Ciclos', value: 93, color: '#8d62ff', time: '10:11' },
+    { label: 'Falhas', value: 74, color: '#3b59ff', time: '10:45' },
   ]);
   const [now, setNow] = useState(new Date());
   const [productionSummary, setProductionSummary] = useState(null);
   const [nrLive, setNrLive] = useState(false);
+  const [rawPayload, setRawPayload] = useState(null);
 
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -66,30 +67,36 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Dados vindos do Node-RED (GET /supervision-lab2 no fluxo; proxy Vite: /nr/supervision-lab2)
+  // Dados vindos do servidor SSE (/events -> repassa dados do Node-RED)
   useEffect(() => {
-    const url = '/nr/supervision-lab2';
-    const pollMs = 2000;
+    const source = new EventSource('http://localhost:3001/events');
 
-    const load = () => {
-      fetch(url)
-        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-        .then((data) => {
-          const next = parseProductionPayload(data);
-          if (next) {
-            setChartData(next.bars);
-            setProductionSummary(next.summary);
-            setNrLive(true);
-          }
-        })
-        .catch(() => {
-          setNrLive(false);
-        });
+    source.onopen = () => {
+      setNrLive(true);
     };
 
-    load();
-    const id = setInterval(load, pollMs);
-    return () => clearInterval(id);
+    source.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        setRawPayload(payload);
+        const next = parseProductionPayload(payload);
+        if (next) {
+          setChartData(next.bars);
+          setProductionSummary(next.summary);
+          setNrLive(true);
+        }
+      } catch (error) {
+        console.warn('[SSE] Payload inválido:', event.data);
+      }
+    };
+
+    source.onerror = () => {
+      setNrLive(false);
+    };
+
+    return () => {
+      source.close();
+    };
   }, []);
 
   return (
@@ -196,6 +203,15 @@ const Dashboard = () => {
                      <span className="bar-time">{item.time}</span>
                    </div>
                  ))}
+               </div>
+
+               <div className="production-metrics" aria-label="Debug de payload SSE">
+                 <div className="production-metric production-metric-wide">
+                   <span className="production-metric-label">Debug SSE (payload bruto)</span>
+                   <span className="production-metric-log" title={rawPayload ? JSON.stringify(rawPayload) : 'Aguardando dados...'}>
+                     {rawPayload ? JSON.stringify(rawPayload) : 'Aguardando dados do Node-RED...'}
+                   </span>
+                 </div>
                </div>
              </div>
           </div>
