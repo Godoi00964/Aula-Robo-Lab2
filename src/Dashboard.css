@@ -131,6 +131,16 @@
   cursor: pointer;
 }
 
+.call-btn.black-active {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.call-btn.yellow-active {
+  background-color: #f59e0b;
+  color: #111827;
+}
+
 /* Gráfico */
 .chart-card {
   background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
@@ -274,6 +284,26 @@
   .blink-red {
     animation: blink-red 1s ease-in-out infinite;
     color: #ffffff;
+  }
+
+  @keyframes blink-black {
+    0%, 100% { background-color: #000000; box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+    50% { background-color: #111827; box-shadow: 0 0 18px rgba(0, 0, 0, 0.75); }
+  }
+
+  .blink-black {
+    animation: blink-black 1s ease-in-out infinite;
+    color: #ffffff;
+  }
+
+  @keyframes blink-yellow {
+    0%, 100% { background-color: #f59e0b; box-shadow: 0 0 0 rgba(245, 158, 11, 0); }
+    50% { background-color: #d97706; box-shadow: 0 0 18px rgba(245, 158, 11, 0.85); }
+  }
+
+  .blink-yellow {
+    animation: blink-yellow 1s ease-in-out infinite;
+    color: #111827;
   }
   background: rgba(255, 255, 255, 0.95);
   padding: 4px 10px;

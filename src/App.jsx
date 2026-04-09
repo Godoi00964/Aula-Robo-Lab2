@@ -74,6 +74,18 @@ function isRampa1Executing(data) {
   return /rampa\s*1|rampa1|programa em execu[cç][ãa]o:\s*rampa 1/i.test(raw);
 }
 
+function isRampa2Executing(data) {
+  if (data == null) return false;
+  const raw = typeof data === 'string' ? data : JSON.stringify(data);
+  return /rampa\s*2|rampa2|programa em execu[cç][ãa]o:\s*rampa 2/i.test(raw);
+}
+
+function isRampa3Executing(data) {
+  if (data == null) return false;
+  const raw = typeof data === 'string' ? data : JSON.stringify(data);
+  return /rampa\s*3|rampa3|programa em execu[cç][ãa]o:\s*rampa 3/i.test(raw);
+}
+
 const Dashboard = () => {
   const [chartData, setChartData] = useState([
     { label: 'Status_Robo', value: 68, color: '#4facfe', time: '08:14' },
@@ -87,6 +99,8 @@ const Dashboard = () => {
   const [nrLive, setNrLive] = useState(false);
   const [lastPayload, setLastPayload] = useState(null);
   const [rampa1Executing, setRampa1Executing] = useState(false);
+  const [rampa2Executing, setRampa2Executing] = useState(false);
+  const [rampa3Executing, setRampa3Executing] = useState(false);
 
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -109,9 +123,13 @@ const Dashboard = () => {
       console.log('[SSE] evento recebido:', event.data);
       setLastPayload(event.data);
       setRampa1Executing(isRampa1Executing(event.data));
+      setRampa2Executing(isRampa2Executing(event.data));
+      setRampa3Executing(isRampa3Executing(event.data));
       try {
         const payload = JSON.parse(event.data);
         setRampa1Executing(isRampa1Executing(payload));
+        setRampa2Executing(isRampa2Executing(payload));
+        setRampa3Executing(isRampa3Executing(payload));
         const next = parseProductionPayload(payload);
         if (next) {
           setChartData(next.bars);
@@ -173,9 +191,9 @@ const Dashboard = () => {
 
         <section className="content-grid">
           <div className="action-column">
-            <button className={`call-btn ${rampa1Executing ? 'blink-red' : ''}`}>Call PMG 1</button>
-            <button className="call-btn">Call PMG 2</button>
-            <button className="call-btn">Call PMG 3</button>
+            <button className={`call-btn ${rampa1Executing ? 'blink-red' : ''}`}>Rampa 1</button>
+            <button className={`call-btn ${rampa2Executing ? 'black-active blink-black' : ''}`}>Rampa 2</button>
+            <button className={`call-btn ${rampa3Executing ? 'yellow-active blink-yellow' : ''}`}>Rampa 3</button>
           </div>
 
           <div className="chart-column">
