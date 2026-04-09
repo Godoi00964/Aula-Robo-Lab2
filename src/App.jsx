@@ -87,13 +87,7 @@ function isRampa3Executing(data) {
 }
 
 const Dashboard = () => {
-  const [chartData, setChartData] = useState([
-    { label: 'Status_Robo', value: 68, color: '#4facfe', time: '08:14' },
-    { label: 'Taxa_Acerto', value: 82, color: '#71b294', time: '09:02' },
-    { label: 'Total_Pecas', value: 57, color: '#ff9a56', time: '09:38' },
-    { label: 'Total_Ciclos', value: 93, color: '#8d62ff', time: '10:11' },
-    { label: 'Falhas', value: 74, color: '#3b59ff', time: '10:45' },
-  ]);
+  const [chartData, setChartData] = useState([]);
   const [now, setNow] = useState(new Date());
   const [productionSummary, setProductionSummary] = useState(null);
   const [nrLive, setNrLive] = useState(false);
@@ -189,11 +183,15 @@ const Dashboard = () => {
           </div>
         </header>
 
+        <div className="image-container">
+          <img src="./robo2.jpeg" alt="Robo 2" className="robo-image-centered" />
+        </div>
+
         <section className="content-grid">
           <div className="action-column">
             <button className={`call-btn ${rampa1Executing ? 'blink-red' : ''}`}>Rampa 1</button>
             <button className={`call-btn ${rampa2Executing ? 'black-active blink-black' : ''}`}>Rampa 2</button>
-            <button className={`call-btn ${rampa3Executing ? 'yellow-active blink-yellow' : ''}`}>Rampa 3</button>
+            <button className={`call-btn ${rampa3Executing ? 'gray-active blink-gray' : ''}`}>Rampa 3</button>
           </div>
 
           <div className="chart-column">

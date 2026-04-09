@@ -68,6 +68,19 @@
   background-color: var(--bg-main);
 }
 
+.image-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 40px;
+}
+
+.robo-image-centered {
+  max-width: 700px;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
 .top-header {
   display: flex;
   justify-content: space-between;
@@ -136,8 +149,8 @@
   color: #ffffff;
 }
 
-.call-btn.yellow-active {
-  background-color: #f59e0b;
+.call-btn.gray-active {
+  background-color: #9ca3af;
   color: #111827;
 }
 
@@ -146,7 +159,7 @@
   background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
   border-radius: 24px;
   padding: 28px;
-  min-height: 420px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -247,14 +260,14 @@
   }
 }
 
-.chart-bar-grid {
+/*.chart-bar-grid {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
   padding-top: 20px;
-  height: 280px;
-}
+  height: 100px;
+}*/
 
 .chart-bar-item {
   display: flex;
@@ -296,23 +309,25 @@
     color: #ffffff;
   }
 
-  @keyframes blink-yellow {
-    0%, 100% { background-color: #f59e0b; box-shadow: 0 0 0 rgba(245, 158, 11, 0); }
-    50% { background-color: #d97706; box-shadow: 0 0 18px rgba(245, 158, 11, 0.85); }
+  @keyframes blink-gray {
+    0%, 100% { background-color: #9ca3af; box-shadow: 0 0 0 rgba(107, 114, 128, 0); }
+    50% { background-color: #6b7280; box-shadow: 0 0 18px rgba(107, 114, 128, 0.85); }
   }
 
-  .blink-yellow {
-    animation: blink-yellow 1s ease-in-out infinite;
+  .blink-gray {
+    animation: blink-gray 1s ease-in-out infinite;
     color: #111827;
   }
-  background: rgba(255, 255, 255, 0.95);
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #111827;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
-}
+
+  .note {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #111827;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  }
 
 .bar-label {
   font-size: 0.9rem;
@@ -323,6 +338,7 @@
   font-size: 0.8rem;
   color: #6b7280;
 }
+
   .raw-payload-card {
     background: #f8fafc;
     border: 1px solid rgba(15, 23, 42, 0.08);
