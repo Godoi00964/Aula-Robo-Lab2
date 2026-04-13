@@ -1,16 +1,59 @@
-# React + Vite
+# Supervision Lab 2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dashboard web de supervisão de produção para laboratório com robô. Interface em React que consome eventos em tempo real (SSE) vindos de um backend que repassa dados do **Node-RED**.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- [Node.js](https://nodejs.org/) (versão compatível com Vite 8)
+- Serviço SSE em `http://localhost:3001/events` (por exemplo, fluxo Node-RED que expõe essa rota)
 
-## React Compiler
+## Instalação
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+```
 
-## Expanding the ESLint configuration
+## Executar em desenvolvimento
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run dev
+```
+
+Abra o endereço indicado no terminal (geralmente `http://localhost:5173`).
+
+## Outros scripts
+
+| Comando        | Descrição              |
+|----------------|------------------------|
+| `npm run build` | Build de produção     |
+| `npm run preview` | Servir o build localmente |
+| `npm run lint`  | ESLint no projeto      |
+
+## Integração com Node-RED
+
+O front conecta-se a um **EventSource** fixo em `http://localhost:3001/events`. Sem esse serviço ativo, o painel mostra estado offline e mensagens de exemplo até o primeiro payload válido.
+
+### Formato de payload (objeto de produção)
+
+O app reconhece objetos JSON com campos como:
+
+- `status_robo` — estado do robô (ex.: `RUNNING`, `STOPPED`, `IDLE`)
+- `taxa_acerto` — taxa de acerto (número ou string com `%`)
+- `total_pecas`, `total_ciclos`
+- `ultimo_log` — texto do último log
+
+Também é aceito um **array** de barras no formato `{ label, value, color, time }`, ou o payload encapsulado em `payload` ou `body`.
+
+### Rampas
+
+Mensagens de texto ou JSON são analisadas para destacar execução nas **Rampa 1**, **Rampa 2** e **Rampa 3** (padrões como `rampa 1`, `rampa1`, `programa em execução: rampa 2`, etc.).
+
+## Estrutura principal
+
+- `src/App.jsx` — dashboard, SSE e parsing dos dados
+- `src/Dashboard.css` — estilos do painel
+- `public/` — imagens (`robo.jpg`, `robo2.jpeg`, favicon)
+
+## Licença
+
+Projeto privado (`private: true` no `package.json`).
