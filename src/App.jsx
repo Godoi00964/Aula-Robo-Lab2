@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
 
 // Componente Reutilizável para os botões da Sidebar
-const NavButton = ({ label, variant, active }) => (
-  <button className={`nav-item ${variant} ${active ? 'active' : ''}`}>
+const NavButton = ({ label, variant, active, blink }) => (
+  <button className={`nav-item ${variant ?? ''} ${active ? 'active' : ''} ${blink && variant ? `blink-${variant}` : ''}`}>
     {label}
   </button>
 );
@@ -86,6 +86,24 @@ function isRampa3Executing(data) {
   return /rampa\s*3|rampa3|programa em execu[cç][ãa]o:\s*rampa 3/i.test(raw);
 }
 
+function parseRobotMode(data) {
+  const normalized = normalizePayload(data);
+
+  if (normalized && typeof normalized === 'object' && 'status_robo' in normalized) {
+    const status = String(normalized.status_robo ?? '').toUpperCase();
+    if (status === 'RUNNING') return 'RUNNING';
+    if (status === 'STOPPED') return 'SLEEP';
+    if (status === 'IDLE') return 'HOME';
+  }
+
+  if (data == null) return null;
+  const raw = typeof data === 'string' ? data : JSON.stringify(data);
+  if (/\bhome\b|in[ií]cio|principal/i.test(raw)) return 'HOME';
+  if (/\brunning\b|\brun\b|executando|rodando/i.test(raw)) return 'RUNNING';
+  if (/\bsleep\b|dormindo|standby|\bstop(ped)?\b|parado/i.test(raw)) return 'SLEEP';
+  return null;
+}
+
 const Dashboard = () => {
   const [chartData, setChartData] = useState([]);
   const [now, setNow] = useState(new Date());
@@ -95,6 +113,9 @@ const Dashboard = () => {
   const [rampa1Executing, setRampa1Executing] = useState(false);
   const [rampa2Executing, setRampa2Executing] = useState(false);
   const [rampa3Executing, setRampa3Executing] = useState(false);
+  const [homeActive, setHomeActive] = useState(false);
+  const [runningActive, setRunningActive] = useState(false);
+  const [sleepActive, setSleepActive] = useState(false);
 
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -119,11 +140,21 @@ const Dashboard = () => {
       setRampa1Executing(isRampa1Executing(event.data));
       setRampa2Executing(isRampa2Executing(event.data));
       setRampa3Executing(isRampa3Executing(event.data));
+      const modeFromText = parseRobotMode(event.data);
+      setHomeActive(modeFromText === 'HOME');
+      setRunningActive(modeFromText === 'RUNNING');
+      setSleepActive(modeFromText === 'SLEEP');
       try {
         const payload = JSON.parse(event.data);
         setRampa1Executing(isRampa1Executing(payload));
         setRampa2Executing(isRampa2Executing(payload));
         setRampa3Executing(isRampa3Executing(payload));
+        const modeFromJson = parseRobotMode(payload);
+        if (modeFromJson) {
+          setHomeActive(modeFromJson === 'HOME');
+          setRunningActive(modeFromJson === 'RUNNING');
+          setSleepActive(modeFromJson === 'SLEEP');
+        }
         const next = parseProductionPayload(payload);
         if (next) {
           setChartData(next.bars);
@@ -162,9 +193,9 @@ const Dashboard = () => {
           
           <div className="divider" />
           
-          <NavButton label="Home" variant="blue" active />
-          <NavButton label="Running" variant="green" />
-          <NavButton label="Sleep" variant="red" />
+          <NavButton label="Home" variant="blue" active={homeActive} blink={homeActive} />
+          <NavButton label="Running" variant="green" active={runningActive} blink={runningActive} />
+          <NavButton label="Sleep" variant="red" active={sleepActive} blink={sleepActive} />
           
           <div className="sidebar-footer">
             <NavButton label="Login" />
